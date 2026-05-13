@@ -1,0 +1,179 @@
+# Shahada Recitation Web App
+
+Interactive web app for learning and reciting the Shahada with real-time voice recognition and audio visualization.
+
+![Shahada App Preview](public/preview.png)
+
+## Features
+
+- **Voice Recognition** – Real-time Arabic speech-to-text using Web Speech API
+- **Audio Visualization** – Dynamic orb animation that reacts to microphone input
+- **Light/Dark Mode** – Full theme support with localStorage persistence
+- **Responsive Design** – Works on mobile and desktop
+- **Pronunciation Guide** – Audio playback for each Shahada step
+- **Certificate** – Personalized certificate with print-to-PDF support
+
+## Tech Stack
+
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS
+- Web Speech API
+- Web Audio API
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+ and npm/yarn
+- A modern browser with Web Speech API support (Chrome, Edge, or Safari)
+- Microphone access (required for voice recognition)
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/mohammedwahba2/shahada.git
+cd shahada-app
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+```
+
+The app will be available at `http://localhost:5173`
+
+### Building for Production
+
+```bash
+# Create a production build
+npm run build
+
+# Preview the production build locally
+npm run preview
+```
+
+### Linting
+
+```bash
+# Check for lint errors
+npm run lint
+
+# Auto-fix fixable errors
+npm run lint:fix
+```
+
+## Project Structure
+
+```
+src/
+├── components/         # React components
+│   ├── Button.tsx
+│   ├── Certificate.tsx
+│   ├── Header.tsx
+│   ├── IntroFlow.tsx
+│   ├── MatchedWordsDisplay.tsx
+│   ├── MobileMenu.tsx
+│   ├── RecitePrompt.tsx
+│   └── VisualizerOrb.tsx
+├── context/           # Context API
+│   └── ThemeContext.tsx
+├── data/              # Shahada data
+│   └── shahada.ts
+├── hooks/             # Custom hooks
+│   ├── useAudioVisualizer.ts
+│   └── useSpeechRecognition.ts
+├── types/             # TypeScript types
+│   └── index.ts
+├── App.tsx            # Main component
+├── main.tsx           # Entry point
+└── index.css          # Global styles
+```
+
+## How It Works
+
+### Voice Recognition
+
+The `useSpeechRecognition` hook uses the Web Speech API with Arabic language support. When the user speaks, the API returns both interim and final transcripts. The app normalizes the text (removes diacritics, standardizes Arabic letter forms) and matches it against the 5 Shahada steps. Once all steps are matched, the certificate is shown.
+
+### Audio Visualization
+
+The `useAudioVisualizer` hook requests microphone access and creates an AudioContext with an AnalyserNode. Each frame reads audio data and calculates RMS (Root Mean Square) volume. The volume value (0-255) drives the orb animation.
+
+### Theme System
+
+`ThemeContext` manages light/dark mode globally. Theme preference is persisted to localStorage. Tailwind's `dark:` modifier applies dark mode styles.
+
+## Assessment Requirements
+
+| Requirement | Status |
+|-------------|--------|
+| React Functional Components | ✅ |
+| React Hooks & Context API | ✅ |
+| Responsive UI | ✅ |
+| Light/Dark Mode | ✅ |
+| Voice Recognition | ✅ |
+| Audio Visualization | ✅ |
+| Code Comments | ✅ |
+| README Documentation | ✅ |
+
+## Browser Support
+
+Requires browsers with:
+- Web Speech API (SpeechRecognition)
+- Web Audio API
+
+| Browser | Voice Recognition | Audio Visualization | Notes |
+|---------|-------------------|---------------------|-------|
+| Chrome (Desktop) | ✅ | ✅ | Recommended |
+| Edge | ✅ | ✅ | Chromium-based |
+| Safari (Mac) | ✅ | ✅ | |
+| Firefox | ❌ | ✅ | Speech API not implemented |
+| Chrome (Android) | ✅ | ✅ | |
+| Safari (iOS) | ❌ | ⚠️ | Speech API blocked on iOS |
+
+> **Note:** iOS Safari does not support the Web Speech API. iPhone/iPad users will see a message suggesting they use Android Chrome or a desktop browser.
+
+## Privacy
+
+- **Microphone Access**: Required for voice recognition and audio visualization
+- **No Data Collection**: All processing happens locally in the browser
+- **localStorage**: Only used to persist theme preference
+- **No External APIs**: No data is sent to any external servers
+
+## Deployment
+
+### Vercel (Recommended)
+
+```bash
+npm i -g vercel
+vercel
+```
+
+### Netlify
+
+Build the project (`npm run build`) and drag the `dist/` folder to Netlify, or connect your Git repository.
+
+### GitHub Pages
+
+```bash
+npm i -g gh-pages
+npm run build
+gh-pages -d dist
+```
+
+## Shahada Steps
+
+The Shahada is divided into 5 steps:
+
+1. **أَشْهَدُ أَن لَّا إِلَٰهَ** (I bear witness there is no god)
+2. **إلا الله** (except Allah)
+3. **وَأَشْهَدُ** (And I bear witness)
+4. **أَنَّ مُحَمَّدًا** (that Muhammad)
+5. **رَّسُولُ ٱللَّٰهِ** (is the Messenger of Allah)
+
+---
+
+Built with React, TypeScript, and Tailwind CSS

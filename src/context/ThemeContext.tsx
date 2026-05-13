@@ -1,0 +1,63 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
+import type { Theme, ThemeContextValue } from "../types";
+
+const STORAGE_KEY = "shahada-theme";
+
+const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
+
+const readStoredTheme = (): Theme => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored === "dark" || stored === "light") return stored;
+  } catch {}
+  return "light";
+};
+
+export const ThemeProvider = ({ children }: { children: ReactNode }) => {
+  const [theme, setTheme] = useState<Theme>(readStoredTheme);
+
+  const isDark = theme === "dark";
+
+  useEffect(() => {
+    const root = document.documentElement;
+
+    root.classList.toggle("dark", isDark);
+
+    try {
+      localStorage.setItem(STORAGE_KEY, theme);
+    } catch {}
+  }, [theme, isDark]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme((t) => (t === "light" ? "dark" : "light"));
+  }, []);
+
+  const value: ThemeContextValue = {
+    theme,
+    toggleTheme,
+    isDark,
+  };
+
+  return (
+    <ThemeContext.Provider value={value}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+export const useTheme = () => {
+  const ctx = useContext(ThemeContext);
+
+  if (!ctx) {
+    throw new Error("useTheme must be used within ThemeProvider");
+  }
+
+  return ctx;
+};
