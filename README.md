@@ -145,6 +145,10 @@ Requires browsers with:
 
 ## Deployment
 
+### Live Demo
+
+Check out the live demo: [https://shahada-react.vercel.app/](https://shahada-react.vercel.app/)
+
 ### Vercel (Recommended)
 
 ```bash

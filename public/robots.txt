@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://shahada.com/sitemap.xml
+Sitemap: https://shahada-react.vercel.app/sitemap.xml
