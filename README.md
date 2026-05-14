@@ -147,7 +147,7 @@ Requires browsers with:
 
 ### Live Demo
 
-Check out the live demo: [https://shahada-react.vercel.app/](https://shahada-react.vercel.app/)
+Check out the live demo: [https://shehada-react.vercel.app/](https://shehada-react.vercel.app/)
 
 ### Vercel (Recommended)
 
