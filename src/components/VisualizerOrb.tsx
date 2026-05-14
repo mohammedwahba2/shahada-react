@@ -23,7 +23,7 @@ export function VisualizerOrb({ mode }: VisualizerOrbProps) {
           width={200}
           height={200}
           draggable={false}
-          className="block h-[200px] w-[200px] max-w-none"
+          className="h-52 w-52 max-w-full transition-opacity duration-300 sm:h-64 sm:w-64"
         />
       </div>
     </div>
