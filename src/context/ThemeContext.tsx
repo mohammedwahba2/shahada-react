@@ -16,7 +16,9 @@ const readStoredTheme = (): Theme => {
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === "dark" || stored === "light") return stored;
-  } catch {}
+  } catch {
+    // Ignore read errors and return default
+  }
   return "light";
 };
 
@@ -32,7 +34,9 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       localStorage.setItem(STORAGE_KEY, theme);
-    } catch {}
+    } catch {
+      // Ignore write errors
+    }
   }, [theme, isDark]);
 
   const toggleTheme = useCallback(() => {
@@ -52,6 +56,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useTheme = () => {
   const ctx = useContext(ThemeContext);
 

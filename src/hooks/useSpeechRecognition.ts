@@ -128,7 +128,7 @@ const useSpeechRecognition = (
     };
 
     return rec;
-  }, [sessionRefs]);
+  }, [sessionRefs, isMobileBrowser]);
 
   useEffect(() => {
     recognitionRef.current = createRecognition();
@@ -138,7 +138,9 @@ const useSpeechRecognition = (
 
       try {
         recognitionRef.current?.abort();
-      } catch {}
+      } catch {
+        // Ignore abort errors
+      }
 
       recognitionRef.current = null;
     };
@@ -207,7 +209,9 @@ const useSpeechRecognition = (
     } catch {
       try {
         recognitionRef.current?.stop();
-      } catch {}
+      } catch {
+        // Ignore stop errors
+      }
     }
 
     setIsListening(false);
@@ -221,7 +225,9 @@ const useSpeechRecognition = (
 
     try {
       recognitionRef.current?.abort();
-    } catch {}
+    } catch {
+      // Ignore abort errors
+    }
 
     recognitionRef.current = createRecognition();
   }, [createRecognition]);

@@ -71,16 +71,17 @@ export function RecitePrompt({
 
   useEffect(() => {
     const delay = stepIndex === 0 ? 450 : 140;
+    playGenRef.current++;
     const id = window.setTimeout(() => play(), delay);
+    const audioNode = audioRef.current;
     return () => {
       clearTimeout(id);
-      playGenRef.current++;
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = "";
+      if (audioNode) {
+        audioNode.pause();
+        audioNode.src = "";
       }
     };
-  }, [stepIndex, step.id]);
+  }, [stepIndex, step.id, play]);
 
   return (
     <div className="flex w-full max-w-lg items-center justify-center gap-3">
