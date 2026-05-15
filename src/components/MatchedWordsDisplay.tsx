@@ -1,18 +1,6 @@
 import { useMemo } from "react";
 
-/**
- * normalize Arabic text for comparison
- */
-const stripForCompare = (value: string): string =>
-  value
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .replace(/[أإآٱأ]/g, "ا")
-    .replace(/ة/g, "ه")
-    .replace(/ى/g, "ي")
-    .replace(/ؤ/g, "و")
-    .replace(/ئ/g, "ي")
-    .trim();
+import { stripForCompare } from "../utils/shahadaText";
 
 /**
  * simple word-by-word matching (sequential)

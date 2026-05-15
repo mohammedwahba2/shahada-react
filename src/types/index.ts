@@ -1,4 +1,8 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type {
+  ButtonHTMLAttributes,
+  MutableRefObject,
+  ReactNode,
+} from "react";
 
 export type Theme = "light" | "dark";
 
@@ -31,6 +35,7 @@ export interface SpeechRecognitionHook {
 
 export type AudioVisualizerHook = {
   volume: number;
+  volumeRef: MutableRefObject<number>;
   startVisualizer: () => Promise<void>;
   stopVisualizer: () => void;
   resumeAudioContext: () => Promise<void>;
@@ -46,6 +51,7 @@ export type OrbVisualMode =
 
 export interface VisualizerOrbProps {
   mode: OrbVisualMode;
+  volumeRef?: MutableRefObject<number>;
 }
 
 export type ButtonVariant =

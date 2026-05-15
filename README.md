@@ -65,6 +65,16 @@ npm run lint
 npm run lint:fix
 ```
 
+### Tests
+
+```bash
+# Run unit tests once
+npm run test
+
+# Watch mode while developing
+npm run test:watch
+```
+
 ## Project Structure
 
 ```

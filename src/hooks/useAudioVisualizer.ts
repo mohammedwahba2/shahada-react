@@ -2,29 +2,31 @@ import { useCallback, useRef, useState } from "react";
 
 import type { AudioVisualizerHook } from "../types";
 
+const isMobile =
+  typeof navigator !== "undefined" &&
+  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+/** How often to push volume into React state (speaking detection only) */
+const VOLUME_STATE_INTERVAL_MS = isMobile ? 120 : 80;
+
 const useAudioVisualizer = (): AudioVisualizerHook => {
   const animationRef = useRef<number | null>(null);
-
   const analyserRef = useRef<AnalyserNode | null>(null);
-
-  const sourceRef =
-    useRef<MediaStreamAudioSourceNode | null>(null);
-
+  const sourceRef = useRef<MediaStreamAudioSourceNode | null>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
-
   const streamRef = useRef<MediaStream | null>(null);
+  const volumeRef = useRef(0);
+  const lastStatePushRef = useRef(0);
 
   const [volume, setVolume] = useState(0);
 
   const stopVisualizer = useCallback(() => {
     if (animationRef.current !== null) {
       cancelAnimationFrame(animationRef.current);
-
       animationRef.current = null;
     }
 
     sourceRef.current?.disconnect();
-
     sourceRef.current = null;
     analyserRef.current = null;
 
@@ -42,7 +44,7 @@ const useAudioVisualizer = (): AudioVisualizerHook => {
     });
 
     streamRef.current = null;
-
+    volumeRef.current = 0;
     setVolume(0);
   }, []);
 
@@ -51,7 +53,7 @@ const useAudioVisualizer = (): AudioVisualizerHook => {
 
     if (!navigator.mediaDevices?.getUserMedia) {
       throw new Error(
-        "Microphone access requires HTTPS and a supported mobile browser."
+        "Microphone access requires HTTPS and a supported mobile browser.",
       );
     }
 
@@ -83,18 +85,18 @@ const useAudioVisualizer = (): AudioVisualizerHook => {
 
           if (name === "NotAllowedError") {
             throw new Error(
-              "Microphone permission was blocked. Allow microphone access and try again."
+              "Microphone permission was blocked. Allow microphone access and try again.",
             );
           }
 
           if (name === "NotFoundError") {
             throw new Error(
-              "No microphone was found on this device."
+              "No microphone was found on this device.",
             );
           }
 
           throw new Error(
-            "The microphone could not be started on this device."
+            "The microphone could not be started on this device.",
           );
         }
       } else {
@@ -102,25 +104,27 @@ const useAudioVisualizer = (): AudioVisualizerHook => {
 
         if (name === "NotAllowedError") {
           throw new Error(
-            "Microphone permission was blocked. Allow microphone access and try again."
+            "Microphone permission was blocked. Allow microphone access and try again.",
           );
         }
 
         if (name === "NotFoundError") {
           throw new Error(
-            "No microphone was found on this device."
+            "No microphone was found on this device.",
           );
         }
 
         throw new Error(
-          "The microphone could not be started on this device."
+          "The microphone could not be started on this device.",
         );
       }
     }
 
     streamRef.current = stream;
 
-    const audioContext = new AudioContext({ latencyHint: "interactive" });
+    const audioContext = new AudioContext({
+      latencyHint: isMobile ? "balanced" : "interactive",
+    });
 
     audioContextRef.current = audioContext;
 
@@ -129,21 +133,16 @@ const useAudioVisualizer = (): AudioVisualizerHook => {
     }
 
     const analyser = audioContext.createAnalyser();
-
-    analyser.fftSize = 256;
-    analyser.smoothingTimeConstant = 0.65;
+    analyser.fftSize = isMobile ? 128 : 256;
+    analyser.smoothingTimeConstant = isMobile ? 0.75 : 0.65;
 
     analyserRef.current = analyser;
 
-    const source =
-      audioContext.createMediaStreamSource(stream);
-
+    const source = audioContext.createMediaStreamSource(stream);
     sourceRef.current = source;
-
     source.connect(analyser);
 
     const bufferLength = analyser.fftSize;
-
     const dataArray = new Uint8Array(bufferLength);
 
     const tick = () => {
@@ -155,18 +154,19 @@ const useAudioVisualizer = (): AudioVisualizerHook => {
 
       for (const sample of dataArray) {
         const centered = sample - 128;
-
         sumSquares += centered * centered;
       }
 
       const rms = Math.sqrt(sumSquares / bufferLength);
+      const scaled = Math.min(255, Math.floor(rms * 5.5 * 255));
 
-      const scaled = Math.min(
-        255,
-        Math.floor(rms * 5.5 * 255)
-      );
+      volumeRef.current = scaled;
 
-      setVolume(scaled);
+      const now = performance.now();
+      if (now - lastStatePushRef.current >= VOLUME_STATE_INTERVAL_MS) {
+        lastStatePushRef.current = now;
+        setVolume(scaled);
+      }
     };
 
     tick();
@@ -179,23 +179,28 @@ const useAudioVisualizer = (): AudioVisualizerHook => {
       await ctx.resume();
     }
   }, []);
+
   const suspendVisualizer = useCallback(async () => {
-    streamRef.current?.getTracks().forEach(track => {
-      track.enabled = false;  
+    streamRef.current?.getTracks().forEach((track) => {
+      track.enabled = false;
     });
+
     const ctx = audioContextRef.current;
     if (ctx?.state === "running") await ctx.suspend();
   }, []);
-  
+
   const resumeVisualizer = useCallback(async () => {
-    streamRef.current?.getTracks().forEach(track => {
+    streamRef.current?.getTracks().forEach((track) => {
       track.enabled = true;
     });
+
     const ctx = audioContextRef.current;
     if (ctx?.state === "suspended") await ctx.resume();
   }, []);
+
   return {
     volume,
+    volumeRef,
     startVisualizer,
     stopVisualizer,
     resumeAudioContext,

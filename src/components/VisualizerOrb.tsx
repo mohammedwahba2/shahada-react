@@ -1,6 +1,8 @@
-import type { OrbVisualMode, VisualizerOrbProps } from "../types";
+import { memo, useEffect, useRef } from "react";
 
-const orbAsset = (mode: OrbVisualMode) => {
+import type { VisualizerOrbProps } from "../types";
+
+const orbAsset = (mode: VisualizerOrbProps["mode"]) => {
   switch (mode) {
     case "listening":
       return "/orbs/listen.svg";
@@ -13,19 +15,53 @@ const orbAsset = (mode: OrbVisualMode) => {
   }
 };
 
-export function VisualizerOrb({ mode }: VisualizerOrbProps) {
+function VisualizerOrbComponent({ mode, volumeRef }: VisualizerOrbProps) {
+  const imgRef = useRef<HTMLImageElement>(null);
+  const modeRef = useRef(mode);
+
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
+
+  useEffect(() => {
+    if (!volumeRef) return;
+
+    let raf = 0;
+
+    const tick = () => {
+      const img = imgRef.current;
+      if (img) {
+        const v = volumeRef.current / 255;
+        const pulse =
+          modeRef.current === "speaking" ? 1 + v * 0.14 : 1 + v * 0.06;
+        img.style.transform = `scale(${pulse.toFixed(3)})`;
+      }
+
+      raf = requestAnimationFrame(tick);
+    };
+
+    raf = requestAnimationFrame(tick);
+
+    return () => cancelAnimationFrame(raf);
+  }, [volumeRef]);
+
   return (
     <div className="flex items-center justify-center isolate">
       <div className="overflow-hidden rounded-full [contain:paint]">
         <img
+          ref={imgRef}
           src={orbAsset(mode)}
           alt=""
           width={200}
           height={200}
           draggable={false}
-          className="h-52 w-52 max-w-full transition-opacity duration-300 sm:h-64 sm:w-64"
+          decoding="async"
+          className="h-52 w-52 max-w-full will-change-transform transition-opacity duration-300 sm:h-64 sm:w-64"
+          style={{ transform: "scale(1)" }}
         />
       </div>
     </div>
   );
 }
+
+export const VisualizerOrb = memo(VisualizerOrbComponent);
