@@ -25,23 +25,15 @@ function VisualizerOrbComponent({ mode, volumeRef }: VisualizerOrbProps) {
 
   useEffect(() => {
     if (!volumeRef) return;
-
+  
     let raf = 0;
-
+  
     const tick = () => {
-      const img = imgRef.current;
-      if (img) {
-        const v = volumeRef.current / 255;
-        const pulse =
-          modeRef.current === "speaking" ? 1 + v * 0.14 : 1 + v * 0.06;
-        img.style.transform = `scale(${pulse.toFixed(3)})`;
-      }
-
       raf = requestAnimationFrame(tick);
     };
-
+  
     raf = requestAnimationFrame(tick);
-
+  
     return () => cancelAnimationFrame(raf);
   }, [volumeRef]);
 
@@ -57,7 +49,6 @@ function VisualizerOrbComponent({ mode, volumeRef }: VisualizerOrbProps) {
           draggable={false}
           decoding="async"
           className="h-52 w-52 max-w-full will-change-transform transition-opacity duration-300 sm:h-64 sm:w-64"
-          style={{ transform: "scale(1)" }}
         />
       </div>
     </div>
