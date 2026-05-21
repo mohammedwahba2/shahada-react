@@ -1,6 +1,5 @@
 /**
  * Minimal Web Speech API typings for TypeScript when the active `lib` omits them.
- * Keeps strict mode without resorting to `any`.
  */
 
 interface SpeechRecognitionAlternative {

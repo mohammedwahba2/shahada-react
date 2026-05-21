@@ -20,14 +20,22 @@ export function Certificate({ onRestart }: CertificateProps) {
       <>
         <style>{`
           @media print {
-            body * { visibility: hidden; }
+            body * { visibility: hidden;    background: white !important;}
             #certificate, #certificate * { visibility: visible; }
             #certificate {
-              position: fixed;
-              top: 0;
+              position: absolute;
               left: 0;
+              top: 0;
               width: 100%;
-              height: 100%;
+              max-width: none;
+              border: none !important; 
+              box-shadow: none !important; 
+              margin: 0;
+              padding: 1cm;
+            }
+
+            #certificate [style*="font-family"] {
+              font-family: 'Noto Naskh Arabic', serif !important;
             }
           }
         `}</style>

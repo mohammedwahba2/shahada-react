@@ -5,7 +5,6 @@ const SPEAKING_OFF = 30;
 
 /**
  * Hysteresis-based speaking detection from mic volume.
- * Uses throttled volume samples so the parent tree does not re-render every frame.
  */
 export const useSpeakingDetection = (
   volume: number,
