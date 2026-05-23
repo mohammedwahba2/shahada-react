@@ -159,7 +159,7 @@ Requires browsers with:
 
 Check out the live demo: [https://shehada-react.vercel.app/](https://shehada-react.vercel.app/)
 
-### Vercel (Recommended)
+### Vercel
 
 ```bash
 npm i -g vercel
