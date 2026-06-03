@@ -42,6 +42,7 @@ export type AudioVisualizerHook = {
   suspendVisualizer: () => Promise<void>;
   resumeVisualizer: () => Promise<void>;
 };
+
 export type OrbVisualMode =
   | "idle"
   | "listening"
@@ -66,7 +67,7 @@ export interface ButtonProps
     "disabled" | "type"
   > {
   variant: ButtonVariant;
-  onClick: () => void;
+  onClick?: () => void; 
   children: ReactNode;
 }
 
