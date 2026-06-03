@@ -91,6 +91,7 @@ src/
 │   ├── RecitePrompt.tsx
 │   ├── TextInputFallback.tsx
 │   └── VisualizerOrb.tsx
+│   ├── ErrorBoundary.tsx 
 ├── config/            # Shared configuration
 │   └── navLinks.ts
 ├── context/           # Context API
