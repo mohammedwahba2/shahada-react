@@ -24,6 +24,7 @@ export function RecitePrompt({
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playGenRef = useRef(0);
 
+  // Keep callback refs fresh without triggering effects
   useEffect(() => {
     onSpeechStartRef.current = onSpeechStart;
     onSpeechEndRef.current = onSpeechEnd;
@@ -46,34 +47,41 @@ export function RecitePrompt({
     onSpeechEndRef.current?.();
   }, []);
 
-  const play = useCallback(() => {
-    const gen = ++playGenRef.current;
+  const play = useCallback(
+    (stepId: number) => {
+      const gen = ++playGenRef.current;
 
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.src = "";
-    }
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = "";
+      }
 
-    setBusy(true);
-    onSpeechStartRef.current?.();
+      setBusy(true);
+      onSpeechStartRef.current?.();
 
-    const audio = new Audio(getStepAudioSrc(step.id));
-    audio.preload = "auto";
-    audioRef.current = audio;
+      const audio = new Audio(getStepAudioSrc(stepId));
+      audio.preload = "auto";
+      audioRef.current = audio;
 
-    audio.onended = () => handleEnd(gen);
-    audio.onerror = () => handleEnd(gen);
+      audio.onended = () => handleEnd(gen);
+      audio.onerror = () => handleEnd(gen);
 
-    void audio.play().catch(() => {
-      handleEnd(gen);
-    });
-  }, [step.id, handleEnd]);
+      void audio.play().catch(() => {
+        handleEnd(gen);
+      });
+    },
+    [handleEnd],
+  );
 
+  // Auto-play when step.id changes — stepIndex used only for initial delay
   useEffect(() => {
     const delay = stepIndex === 0 ? 450 : 140;
+    const capturedId = step.id;
     playGenRef.current++;
-    const id = window.setTimeout(() => play(), delay);
+
+    const id = window.setTimeout(() => play(capturedId), delay);
     const audioNode = audioRef.current;
+
     return () => {
       clearTimeout(id);
       if (audioNode) {
@@ -81,7 +89,8 @@ export function RecitePrompt({
         audioNode.src = "";
       }
     };
-  }, [stepIndex, step.id, play]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step.id]); 
 
   return (
     <div className="flex w-full max-w-lg items-center justify-center gap-3">
@@ -91,7 +100,7 @@ export function RecitePrompt({
 
       <button
         type="button"
-        onClick={play}
+        onClick={() => play(step.id)}
         disabled={busy}
         aria-label="Play pronunciation"
         className="flex h-10 w-10 items-center justify-center rounded-full border border-ink text-ink transition hover:bg-ink/10 disabled:opacity-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
