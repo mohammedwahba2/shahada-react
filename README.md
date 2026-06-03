@@ -9,6 +9,7 @@ Interactive web app for learning and reciting the Shahada with real-time voice r
 - **Voice Recognition** – Real-time Arabic speech-to-text using Web Speech API
 - **Text Input Fallback** – Type the Shahada on browsers without speech support (iOS, Firefox)
 - **Audio Visualization** – Dynamic orb animation that reacts to microphone input
+- **Offline Detection** – Detects lost internet connection and gracefully pauses the session
 - **Light/Dark Mode** – Full theme support with localStorage persistence
 - **Responsive Design** – Works on mobile and desktop
 - **Pronunciation Guide** – Audio playback for each Shahada step
@@ -88,6 +89,7 @@ src/
 │   ├── MatchedWordsDisplay.tsx
 │   ├── MobileMenu.tsx
 │   ├── RecitePrompt.tsx
+│   ├── TextInputFallback.tsx
 │   └── VisualizerOrb.tsx
 ├── config/            # Shared configuration
 │   └── navLinks.ts
@@ -97,6 +99,7 @@ src/
 │   └── shahada.ts
 ├── hooks/             # Custom hooks
 │   ├── useAudioVisualizer.ts
+│   ├── useOnlineStatus.ts
 │   ├── useSpeakingDetection.ts
 │   └── useSpeechRecognition.ts
 ├── types/             # TypeScript types
@@ -117,6 +120,10 @@ The `useSpeechRecognition` hook uses the Web Speech API with Arabic language sup
 ### Text Input Fallback
 
 On browsers without Web Speech API support (iOS Safari, Firefox), the app automatically switches to a text input mode. The user types the Shahada in Arabic and the same matching logic applies — no error messages, no broken experience.
+
+### Offline Detection
+
+The `useOnlineStatus` hook listens to the browser's `online` and `offline` events. If the connection drops mid-session, the active recording is stopped automatically and a banner is shown. Once the connection is restored, the banner clears and the user can start again.
 
 ### Audio Visualization
 
