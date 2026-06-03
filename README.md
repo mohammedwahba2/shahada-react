@@ -7,6 +7,7 @@ Interactive web app for learning and reciting the Shahada with real-time voice r
 ## Features
 
 - **Voice Recognition** – Real-time Arabic speech-to-text using Web Speech API
+- **Text Input Fallback** – Type the Shahada on browsers without speech support (iOS, Firefox)
 - **Audio Visualization** – Dynamic orb animation that reacts to microphone input
 - **Light/Dark Mode** – Full theme support with localStorage persistence
 - **Responsive Design** – Works on mobile and desktop
@@ -26,7 +27,7 @@ Interactive web app for learning and reciting the Shahada with real-time voice r
 ### Prerequisites
 
 - Node.js 18+ and npm/yarn
-- A modern browser with Web Speech API support (Chrome, Edge, or Safari)
+- A modern browser (Chrome, Edge, Safari, Firefox, or iOS Safari)
 - Microphone access (required for voice recognition)
 
 ### Installation
@@ -113,6 +114,10 @@ src/
 
 The `useSpeechRecognition` hook uses the Web Speech API with Arabic language support. When the user speaks, the API returns both interim and final transcripts. The app normalizes the text (removes diacritics, standardizes Arabic letter forms) and matches it against the 5 Shahada steps. Once all steps are matched, the certificate is shown.
 
+### Text Input Fallback
+
+On browsers without Web Speech API support (iOS Safari, Firefox), the app automatically switches to a text input mode. The user types the Shahada in Arabic and the same matching logic applies — no error messages, no broken experience.
+
 ### Audio Visualization
 
 The `useAudioVisualizer` hook requests microphone access and creates an AudioContext with an AnalyserNode. Each frame reads audio data and calculates RMS (Root Mean Square) volume. The volume value (0-255) drives the orb animation.
@@ -136,20 +141,16 @@ The `useAudioVisualizer` hook requests microphone access and creates an AudioCon
 
 ## Browser Support
 
-Requires browsers with:
-- Web Speech API (SpeechRecognition)
-- Web Audio API
+| Browser | Voice Recognition | Text Fallback | Audio Visualization |
+|---------|:-----------------:|:-------------:|:-------------------:|
+| Chrome (Desktop) | ✅ | — | ✅ |
+| Edge | ✅ | — | ✅ |
+| Safari (Mac) | ✅ | — | ✅ |
+| Chrome (Android) | ✅ | — | ✅ |
+| Firefox | ❌ | ✅ | ✅ |
+| Safari (iOS) | ❌ | ✅ | ✅ |
 
-| Browser | Voice Recognition | Audio Visualization | Notes |
-|---------|-------------------|---------------------|-------|
-| Chrome (Desktop) | ✅ | ✅ | Recommended |
-| Edge | ✅ | ✅ | Chromium-based |
-| Safari (Mac) | ✅ | ✅ | |
-| Firefox | ❌ | ✅ | Speech API not implemented |
-| Chrome (Android) | ✅ | ✅ | |
-| Safari (iOS) | ❌ | ⚠️ | Speech API blocked on iOS |
-
-> **Note:** iOS Safari does not support the Web Speech API. iPhone/iPad users will see a message suggesting they use Android Chrome or a desktop browser.
+> Browsers without Web Speech API support automatically switch to text input mode.
 
 ## Privacy
 

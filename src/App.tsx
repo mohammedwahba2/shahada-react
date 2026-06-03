@@ -13,6 +13,7 @@ import { RecitePrompt } from "./components/RecitePrompt";
 import { Certificate } from "./components/Certificate";
 import { IntroFlow } from "./components/IntroFlow";
 import { MatchedWordsDisplay } from "./components/MatchedWordsDisplay";
+import { TextInputFallback } from "./components/TextInputFallback";
 
 import { shahadaSteps } from "./data/shahada";
 
@@ -31,6 +32,10 @@ import type { OrbVisualMode } from "./types";
 const App = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [startupError, setStartupError] = useState<string | null>(null);
+
+  // Text fallback state (iOS / Firefox)
+  const [textInput, setTextInput] = useState("");
+  const [textSubmitted, setTextSubmitted] = useState(false);
 
   const [orbOverride, setOrbOverride] = useState<
     null | "engaged" | "error"
@@ -60,7 +65,6 @@ const App = () => {
   const scheduleTimer = useCallback(
     (ms: number) => {
       clearTimer();
-
       overrideTimerRef.current = window.setTimeout(() => {
         setOrbOverride(null);
       }, ms);
@@ -78,13 +82,16 @@ const App = () => {
   } = useAudioVisualizer();
 
   const {
-    transcript,
+    transcript: speechTranscript,
     hasSupport,
     error,
     startListening,
     stopListening,
-    resetTranscript,
+    resetTranscript: resetSpeechTranscript,
   } = useSpeechRecognition(speechSessionRefs);
+
+  // Use speech transcript when supported, text input when not
+  const transcript = hasSupport ? speechTranscript : textInput;
 
   useEffect(() => {
     recordingActiveRef.current = isRecording;
@@ -105,6 +112,12 @@ const App = () => {
       return shahadaSteps.length;
     }
 
+    // In text mode we don't have an active "recording" session,
+    // so just return computed steps directly
+    if (!hasSupport) {
+      return computedMatchSteps;
+    }
+
     if (!isRecording) {
       sessionPeakStepsRef.current = 0;
       return computedMatchSteps;
@@ -118,11 +131,10 @@ const App = () => {
         : 0;
 
     const best = Math.max(fullMatch, partialMatch);
-
     sessionPeakStepsRef.current = Math.max(peak, best);
 
     return Math.min(sessionPeakStepsRef.current, shahadaSteps.length);
-  }, [isRecording, computedMatchSteps, transcript, normalized]);
+  }, [hasSupport, isRecording, computedMatchSteps, transcript, normalized]);
 
   const isComplete = steps >= shahadaSteps.length;
 
@@ -133,25 +145,27 @@ const App = () => {
 
   const orbMode: OrbVisualMode = useMemo(() => {
     if (error) return "error";
-
     if (orbOverride) return orbOverride;
-
-    if (!isRecording) return "listening";
-
+    if (!isRecording && !textSubmitted) return "listening";
     return isSpeaking ? "speaking" : "listening";
-  }, [error, orbOverride, isRecording, isSpeaking]);
+  }, [error, orbOverride, isRecording, isSpeaking, textSubmitted]);
 
   useEffect(() => {
     if (!isRecording) return;
-
     if (steps > prevStepRef.current) {
       prevStepRef.current = steps;
-
       setOrbOverride("engaged");
-
       scheduleTimer(2000);
     }
   }, [steps, isRecording, scheduleTimer]);
+
+  // Mark complete when text input matches all steps
+  useEffect(() => {
+    if (!hasSupport && isComplete && textSubmitted) {
+      setOrbOverride("engaged");
+      scheduleTimer(2000);
+    }
+  }, [hasSupport, isComplete, textSubmitted, scheduleTimer]);
 
   useEffect(() => {
     return () => {
@@ -165,14 +179,10 @@ const App = () => {
     if (isComplete && isRecording) {
       recordingActiveRef.current = false;
       recognitionPausedForGuideRef.current = false;
-
       stopListening();
       stopVisualizer();
-
       setIsRecording(false);
-
       setOrbOverride("engaged");
-
       scheduleTimer(2000);
     }
   }, [
@@ -196,9 +206,7 @@ const App = () => {
   }, [resumeVisualizer, startListening]);
 
   const handleStart = useCallback(async () => {
-    if (!hasSupport) {
-      return;
-    }
+    if (!hasSupport) return;
 
     clearTimer();
     setOrbOverride(null);
@@ -248,7 +256,7 @@ const App = () => {
   ]);
 
   const handleStop = useCallback(() => {
-    const hasText = transcript.trim().length > 0;
+    const hasText = speechTranscript.trim().length > 0;
     const incomplete = steps < shahadaSteps.length;
 
     recordingActiveRef.current = false;
@@ -256,49 +264,41 @@ const App = () => {
 
     stopVisualizer();
     stopListening();
-
     setIsRecording(false);
 
     if (hasText && incomplete) {
       setOrbOverride("error");
-
       scheduleTimer(2000);
     }
-  }, [
-    transcript,
-    steps,
-    stopVisualizer,
-    stopListening,
-    scheduleTimer,
-  ]);
+  }, [speechTranscript, steps, stopVisualizer, stopListening, scheduleTimer]);
+
+  const handleTextSubmit = useCallback(() => {
+    if (!textInput.trim()) return;
+    setTextSubmitted(true);
+  }, [textInput]);
 
   const handleRestart = useCallback(() => {
     clearTimer();
-
     setOrbOverride(null);
     setStartupError(null);
+    setTextInput("");
+    setTextSubmitted(false);
 
     recordingActiveRef.current = false;
     recognitionPausedForGuideRef.current = false;
 
-    resetTranscript();
-
+    resetSpeechTranscript();
     stopVisualizer();
     stopListening();
-
     setIsRecording(false);
 
     prevStepRef.current = 0;
-  }, [
-    clearTimer,
-    resetTranscript,
-    stopVisualizer,
-    stopListening,
-  ]);
+    sessionPeakStepsRef.current = 0;
+  }, [clearTimer, resetSpeechTranscript, stopVisualizer, stopListening]);
 
   const subtitle = isComplete
     ? "Your first step on your path to Islam."
-    : isRecording
+    : isRecording || (!hasSupport && textSubmitted)
       ? "Repeat after me"
       : "Your First Step On Your Path To Islam.";
 
@@ -306,16 +306,11 @@ const App = () => {
     cleanDisplayTranscript(transcript) ||
     (isRecording ? "Listening…" : "");
 
-  const statusMessage =
-    startupError ||
-    error ||
-    (!hasSupport
-      ? /iPad|iPhone|iPod/i.test(
-          typeof navigator !== "undefined" ? navigator.userAgent : "",
-        )
-        ? "Voice recognition is not available on iPhone/iPad browsers. Use Android Chrome or a computer."
-        : "This browser does not support live speech recognition."
-      : null);
+  // Only show error for speech mode — text mode handles its own UI
+  const statusMessage = startupError || error || null;
+
+  // In text mode, show the fallback after the user taps "Yes, I'm ready"
+  const showTextFallback = !hasSupport && isRecording === false;
 
   return (
     <div className="flex min-h-full flex-col bg-white text-ink dark:bg-ink dark:text-white">
@@ -335,7 +330,8 @@ const App = () => {
           <div className="mt-10 mb-4 md:mb-8 sm:mt-22">
             <VisualizerOrb mode={orbMode} volumeRef={volumeRef} />
 
-            {isRecording && currentStep && transcript.trim() && (
+            {/* Show matched words in both speech and text mode */}
+            {currentStep && transcript.trim() && (
               <MatchedWordsDisplay
                 expected={currentStep.arabic}
                 display={display}
@@ -343,6 +339,7 @@ const App = () => {
             )}
           </div>
 
+          {/* Pronunciation guide — show in speech mode only */}
           {!isComplete && isRecording && (
             <RecitePrompt
               step={currentStep!}
@@ -352,17 +349,29 @@ const App = () => {
             />
           )}
 
-          <div className="mt-10 flex flex-col gap-4">
+          <div className="mt-10 flex flex-col gap-4 items-center">
             {statusMessage && <p>{statusMessage}</p>}
 
-            {!isRecording && !isComplete && (
+            {/* Speech mode: not started yet */}
+            {hasSupport && !isRecording && !isComplete && (
               <IntroFlow onStart={handleStart} />
             )}
 
-            {isRecording && !isComplete && (
+            {/* Speech mode: recording */}
+            {hasSupport && isRecording && !isComplete && (
               <Button variant="stop" onClick={handleStop}>
                 Stop recording
               </Button>
+            )}
+
+            {/* Text fallback mode */}
+            {showTextFallback && !isComplete && (
+              <TextInputFallback
+                value={textInput}
+                onChange={setTextInput}
+                onSubmit={handleTextSubmit}
+                isComplete={isComplete}
+              />
             )}
 
             {isComplete && <Certificate onRestart={handleRestart} />}
