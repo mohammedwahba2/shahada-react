@@ -3,10 +3,19 @@ interface IntroFlowProps {
 }
 
 export function IntroFlow({ onStart }: IntroFlowProps) {
+  const handleLearnMore = () => {
+    const el = document.getElementById("about");
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
+    } else {
+      window.location.hash = "#about";
+    }
+  };
+
   return (
     <div className="flex flex-col items-center gap-4 text-center">
       <p className="max-w-sm text-md font-medium text-ink dark:text-white">
-        هل أنت مستعد لنطق الشهادة؟
+        Are you ready to recite the Shahada?
       </p>
 
       <div className="flex gap-3">
@@ -14,14 +23,14 @@ export function IntroFlow({ onStart }: IntroFlowProps) {
           onClick={onStart}
           className="px-6 py-2 rounded-full bg-ink text-white dark:bg-white dark:text-ink text-sm font-medium"
         >
-          نعم، أنا مستعد
+          Yes, I'm ready
         </button>
 
         <button
-          onClick={onStart}
+          onClick={handleLearnMore}
           className="px-6 py-2 rounded-full border border-zinc-300 dark:border-zinc-600 text-sm font-medium"
         >
-          تعلم المزيد
+          Learn more
         </button>
       </div>
     </div>
