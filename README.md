@@ -34,7 +34,7 @@ Interactive web app for learning and reciting the Shahada with real-time voice r
 ```bash
 # Clone the repository
 git clone https://github.com/mohammedwahba2/shahada-react.git
-cd shahada-app
+cd shahada-react
 
 # Install dependencies
 npm install
@@ -88,15 +88,20 @@ src/
 │   ├── MobileMenu.tsx
 │   ├── RecitePrompt.tsx
 │   └── VisualizerOrb.tsx
+├── config/            # Shared configuration
+│   └── navLinks.ts
 ├── context/           # Context API
 │   └── ThemeContext.tsx
 ├── data/              # Shahada data
 │   └── shahada.ts
 ├── hooks/             # Custom hooks
 │   ├── useAudioVisualizer.ts
+│   ├── useSpeakingDetection.ts
 │   └── useSpeechRecognition.ts
 ├── types/             # TypeScript types
 │   └── index.ts
+├── utils/             # Utility functions
+│   └── shahadaText.ts
 ├── App.tsx            # Main component
 ├── main.tsx           # Entry point
 └── index.css          # Global styles
@@ -165,7 +170,6 @@ Check out the live demo: [https://shehada-react.vercel.app/](https://shehada-rea
 npm i -g vercel
 vercel
 ```
-
 
 ## Shahada Steps
 
