@@ -15,6 +15,15 @@ const orbAsset = (mode: VisualizerOrbProps["mode"]) => {
   }
 };
 
+
+const orbLabel: Record<VisualizerOrbProps["mode"], string> = {
+  idle:     "Waiting to start",
+  listening: "Listening for your voice",
+  speaking: "Voice detected",
+  engaged:  "Step matched — well done",
+  error:    "An error occurred",
+};
+
 function VisualizerOrbComponent({ mode, volumeRef }: VisualizerOrbProps) {
   const imgRef = useRef<HTMLImageElement>(null);
   const modeRef = useRef(mode);
@@ -25,25 +34,31 @@ function VisualizerOrbComponent({ mode, volumeRef }: VisualizerOrbProps) {
 
   useEffect(() => {
     if (!volumeRef) return;
-  
+
     let raf = 0;
-  
+
     const tick = () => {
       raf = requestAnimationFrame(tick);
     };
-  
+
     raf = requestAnimationFrame(tick);
-  
+
     return () => cancelAnimationFrame(raf);
   }, [volumeRef]);
 
   return (
-    <div className="flex items-center justify-center isolate">
+    <div
+      role="img"
+      aria-label={orbLabel[mode]}
+      aria-live="polite"
+      aria-atomic="true"
+      className="flex items-center justify-center isolate"
+    >
       <div className="overflow-hidden rounded-full [contain:paint]">
         <img
           ref={imgRef}
           src={orbAsset(mode)}
-          alt=""
+          alt="Listening for your voice"    
           width={200}
           height={200}
           draggable={false}

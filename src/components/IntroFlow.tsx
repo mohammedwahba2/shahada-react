@@ -1,8 +1,21 @@
+import { useState } from "react";
+
 interface IntroFlowProps {
-  onStart: () => void;
+  onStart: () => Promise<void> | void;
 }
 
 export function IntroFlow({ onStart }: IntroFlowProps) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleStart = async () => {
+    setIsLoading(true);
+    try {
+      await onStart();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleLearnMore = () => {
     const el = document.getElementById("about");
     if (el) {
@@ -20,15 +33,29 @@ export function IntroFlow({ onStart }: IntroFlowProps) {
 
       <div className="flex gap-3">
         <button
-          onClick={onStart}
-          className="px-6 py-2 rounded-full bg-ink text-white dark:bg-white dark:text-ink text-sm font-medium"
+          onClick={handleStart}
+          disabled={isLoading}
+          aria-label={isLoading ? "Requesting microphone access…" : "Yes, I'm ready"}
+          aria-busy={isLoading}
+          className="inline-flex min-h-[44px] items-center justify-center gap-2 px-6 py-2 rounded-full bg-ink text-white dark:bg-white dark:text-ink text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed transition"
         >
-          Yes, I'm ready
+          {isLoading ? (
+            <>
+              <span
+                aria-hidden="true"
+                className="h-4 w-4 rounded-full border-2 border-white/30 border-t-white dark:border-ink/30 dark:border-t-ink animate-spin"
+              />
+              Requesting mic…
+            </>
+          ) : (
+            "Yes, I'm ready"
+          )}
         </button>
 
         <button
           onClick={handleLearnMore}
-          className="px-6 py-2 rounded-full border border-zinc-300 dark:border-zinc-600 text-sm font-medium"
+          aria-label="Learn more about the Shahada"
+          className="min-h-[44px] px-6 py-2 rounded-full border border-zinc-300 dark:border-zinc-600 text-sm font-medium transition hover:bg-zinc-50 dark:hover:bg-zinc-800"
         >
           Learn more
         </button>

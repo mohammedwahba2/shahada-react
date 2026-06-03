@@ -2,7 +2,7 @@ import type { ButtonProps } from "../types";
 import { BookText } from "lucide-react";
 
 /**
- * button styles per variant
+ * Button styles per variant.
  */
 const variantClasses: Record<ButtonProps["variant"], string> = {
   start:
@@ -16,7 +16,7 @@ const variantClasses: Record<ButtonProps["variant"], string> = {
 };
 
 /**
- * fallback labels for accessibility
+ * Fallback accessible labels when no text children are provided.
  */
 const variantLabels: Record<ButtonProps["variant"], string> = {
   start: "Start recording",
@@ -30,7 +30,8 @@ function CertificateIcon() {
 }
 
 /**
- * reusable button with variants + a11y defaults
+ * Reusable button with variants and accessibility defaults.
+ * aria-label falls back to variantLabels only when children are absent.
  */
 export function Button({
   variant,
@@ -40,14 +41,13 @@ export function Button({
   type = "button",
 }: ButtonProps) {
   const isCertificate = variant === "certificate";
-  const label = children?.toString() ?? variantLabels[variant];
 
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
-      aria-label={label}
+      aria-label={children ? undefined : variantLabels[variant]}
       className={[
         "inline-flex min-h-[48px] items-center justify-center rounded-full px-7 py-3",
         "text-sm font-semibold shadow-sm transition",
