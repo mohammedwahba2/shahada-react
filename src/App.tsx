@@ -20,6 +20,7 @@ import { shahadaSteps } from "./data/shahada";
 import useSpeechRecognition from "./hooks/useSpeechRecognition";
 import useAudioVisualizer from "./hooks/useAudioVisualizer";
 import { useSpeakingDetection } from "./hooks/useSpeakingDetection";
+import { useOnlineStatus } from "./hooks/useOnlineStatus.ts";
 
 import {
   cleanDisplayTranscript,
@@ -46,7 +47,7 @@ const App = () => {
   const sessionPeakStepsRef = useRef(0);
   const recordingActiveRef = useRef(false);
   const recognitionPausedForGuideRef = useRef(false);
-
+  const isOnline = useOnlineStatus();
   const speechSessionRefs = useMemo(
     () => ({
       sessionActiveRef: recordingActiveRef,
@@ -193,6 +194,23 @@ const App = () => {
     scheduleTimer,
   ]);
 
+  useEffect(() => {
+    if (!isOnline && isRecording) {
+      recordingActiveRef.current = false;
+      recognitionPausedForGuideRef.current = false;
+  
+      stopVisualizer();
+      stopListening();
+      setIsRecording(false);
+    }
+  }, [isOnline, isRecording, stopListening, stopVisualizer]);
+
+  useEffect(() => {
+    if (isOnline) {
+      setStartupError(null);
+    }
+  }, [isOnline]);
+
   const handlePromptSpeechStart = useCallback(() => {
     recognitionPausedForGuideRef.current = true;
     void suspendVisualizer();
@@ -208,6 +226,12 @@ const App = () => {
   const handleStart = useCallback(async () => {
     if (!hasSupport) return;
 
+    if (!isOnline) {
+      setStartupError(
+        "No internet connection. Please reconnect and try again.",
+      );
+      return;
+    }
     clearTimer();
     setOrbOverride(null);
     setStartupError(null);
@@ -249,12 +273,12 @@ const App = () => {
   }, [
     clearTimer,
     hasSupport,
+    isOnline,
     startListening,
     startVisualizer,
     stopListening,
     stopVisualizer,
   ]);
-
   const handleStop = useCallback(() => {
     const hasText = speechTranscript.trim().length > 0;
     const incomplete = steps < shahadaSteps.length;
@@ -307,7 +331,8 @@ const App = () => {
     (isRecording ? "Listening…" : "");
 
   // Only show error for speech mode — text mode handles its own UI
-  const statusMessage = startupError || error || null;
+  const statusMessage =
+  !isOnline ? null : startupError || error || null;
 
   // In text mode, show the fallback after the user taps "Yes, I'm ready"
   const showTextFallback = !hasSupport && isRecording === false;
@@ -315,7 +340,11 @@ const App = () => {
   return (
     <div className="flex min-h-full flex-col bg-white text-ink dark:bg-ink dark:text-white">
       <Header />
-
+        {!isOnline && (
+          <div className="w-full bg-red-500 text-white text-center py-2">
+            You are offline. Speech recognition requires an internet connection.
+          </div>
+        )}
       <main
         id="main-content"
         className="flex flex-1 flex-col items-center px-4 pb-16 pt-12 sm:px-6 sm:pt-40 lg:px-8"
@@ -353,7 +382,7 @@ const App = () => {
             {statusMessage && <p>{statusMessage}</p>}
 
             {/* Speech mode: not started yet */}
-            {hasSupport && !isRecording && !isComplete && (
+            {hasSupport && isOnline && !isRecording && !isComplete && (
               <IntroFlow onStart={handleStart} />
             )}
 

@@ -84,18 +84,24 @@ const useSpeechRecognition = (
       if (event.error === "aborted") {
         return;
       }
-
+    
       if (event.error === "no-speech") {
         return;
       }
-
+    
+      if (event.error === "network") {
+        setError("Internet connection lost");
+        setIsListening(false);
+        return;
+      }
+    
       const msg =
         event.error === "not-allowed"
           ? "Mic permission denied"
           : event.error === "audio-capture"
           ? "No microphone was captured"
           : `Speech error: ${event.error}`;
-
+    
       setError(msg);
       setIsListening(false);
     };

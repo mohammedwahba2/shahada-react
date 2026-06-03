@@ -47,7 +47,7 @@ export function TextInputFallback({
         onKeyDown={handleKeyDown}
         dir="rtl"
         lang="ar"
-        placeholder="اكتب الشهادة هنا..."
+        placeholder="Type the Shahada in Arabic..."
         autoComplete="off"
         autoCorrect="off"
         autoCapitalize="off"
