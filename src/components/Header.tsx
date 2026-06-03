@@ -2,20 +2,9 @@ import { useTheme } from "../context/ThemeContext";
 import type { HeaderProps } from "../types";
 import { MobileMenu } from "./MobileMenu";
 import { Sun, Moon } from "lucide-react";
+import { navLinks } from "../config/navLinks.ts";
 
-/**
- * nav links (desktop + mobile)
- */
-const navLinks = [
-  { href: "#home", label: "Home" },
-  { href: "#about", label: "About" },
-  { href: "#contact", label: "Contact" },
-  { href: "#donate", label: "Donate" },
-] as const;
 
-/**
- * app header (logo + nav + theme + mobile menu)
- */
 export function Header({ className = "" }: HeaderProps) {
   const { isDark, toggleTheme } = useTheme();
 
@@ -25,7 +14,8 @@ export function Header({ className = "" }: HeaderProps) {
         className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8"
         aria-label="Main navigation"
       >
-        {/* brand */}
+
+
         <a
           href="#home"
           className="text-lg font-bold text-zinc-900 dark:text-white sm:text-xl"
@@ -34,7 +24,6 @@ export function Header({ className = "" }: HeaderProps) {
           SHAHADA
         </a>
 
-        {/* desktop nav */}
         <ul className="hidden items-center gap-12 text-sm font-semibold uppercase tracking-wide text-ink dark:text-white md:flex">
           {navLinks.map((link) => (
             <li key={link.href}>
@@ -49,7 +38,7 @@ export function Header({ className = "" }: HeaderProps) {
         </ul>
 
         <div className="flex items-center gap-3">
-          {/* theme toggle */}
+
           <button
             type="button"
             onClick={toggleTheme}
@@ -64,7 +53,7 @@ export function Header({ className = "" }: HeaderProps) {
             )}
           </button>
 
-          {/* mobile menu */}
+
           <MobileMenu />
         </div>
       </nav>

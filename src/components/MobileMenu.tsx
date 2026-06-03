@@ -1,19 +1,7 @@
 import { X, Menu } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
+import { navLinks } from "../config/navLinks.ts";
 
-/**
- * nav links (shared with header)
- */
-const navLinks = [
-  { href: "#home", label: "Home" },
-  { href: "#about", label: "About" },
-  { href: "#contact", label: "Contact" },
-  { href: "#donate", label: "Donate" },
-] as const;
-
-/**
- * mobile drawer navigation
- */
 export function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -40,7 +28,6 @@ export function MobileMenu() {
 
   return (
     <div>
-      {/* open button */}
       <button
         onClick={() => setIsOpen(true)}
         aria-label="Open menu"
@@ -51,7 +38,7 @@ export function MobileMenu() {
         <Menu size={18} aria-hidden="true" />
       </button>
 
-      {/* overlay */}
+
       {isOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50"
@@ -60,7 +47,6 @@ export function MobileMenu() {
         />
       )}
 
-      {/* drawer */}
       <aside
         id="mobile-menu"
         role="dialog"
