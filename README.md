@@ -33,7 +33,7 @@ Interactive web app for learning and reciting the Shahada with real-time voice r
 
 ```bash
 # Clone the repository
-git clone https://github.com/mohammedwahba2/shahada.git
+git clone https://github.com/mohammedwahba2/shahada-react.git
 cd shahada-app
 
 # Install dependencies
@@ -159,24 +159,13 @@ Requires browsers with:
 
 Check out the live demo: [https://shehada-react.vercel.app/](https://shehada-react.vercel.app/)
 
-### Vercel (Recommended)
+### Vercel
 
 ```bash
 npm i -g vercel
 vercel
 ```
 
-### Netlify
-
-Build the project (`npm run build`) and drag the `dist/` folder to Netlify, or connect your Git repository.
-
-### GitHub Pages
-
-```bash
-npm i -g gh-pages
-npm run build
-gh-pages -d dist
-```
 
 ## Shahada Steps
 
