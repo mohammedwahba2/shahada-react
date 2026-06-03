@@ -31,7 +31,8 @@ interface MatchedWordsDisplayProps {
 }
 
 /**
- * highlights matched words in expected Arabic text
+ * highlights matched words in expected Arabic text.
+ * matched words appear full opacity; unmatched are dimmed.
  */
 export function MatchedWordsDisplay({
   expected,
@@ -54,7 +55,9 @@ export function MatchedWordsDisplay({
         <span
           key={idx}
           className={
-            idx < matchedCount ? "text-ink/60 dark:text-white/60" : ""
+            idx < matchedCount
+              ? "text-ink dark:text-white"           
+              : "text-ink/30 dark:text-white/30"    
           }
         >
           {word + " "}
