@@ -35,7 +35,7 @@ export const cleanDisplayTranscript = (text: string): string => {
 
 /**
  * Count sequential Shahada steps matched in transcript.
- * Uses fuzzy Arabic matching (normalized + hints).
+ * Uses fuzzy Arabic matching (normalized arabic + keywords + compactHints).
  */
 export const countConsecutiveSteps = (
   raw: string,
@@ -46,7 +46,6 @@ export const countConsecutiveSteps = (
   const normLower = normalized.toLowerCase();
 
   let lastIndex = 0;
-  let normalizedIndex = 0;
   let matched = 0;
 
   for (let i = 0; i < shahadaSteps.length; i++) {
@@ -59,13 +58,23 @@ export const countConsecutiveSteps = (
     }
 
     const arabic = stripForCompare(step.arabic);
-    const hints = (step.compactHints ?? []).map((h) => stripForCompare(h));
+
+    // Build all candidates: arabic text + keywords + compactHints
+    const keywordCandidates = (step.keywords ?? []).map((k) =>
+      stripForCompare(k),
+    );
+    const hintCandidates = (step.compactHints ?? []).map((h) =>
+      stripForCompare(h),
+    );
+
+    const allCandidates = [arabic, ...keywordCandidates, ...hintCandidates].filter(
+      Boolean,
+    );
 
     let bestStart = -1;
     let bestLen = 0;
 
-    for (const cand of [arabic, ...hints]) {
-      if (!cand) continue;
+    for (const cand of allCandidates) {
       const idx = compactRaw.indexOf(cand, lastIndex);
       if (idx !== -1 && (bestStart === -1 || idx < bestStart)) {
         bestStart = idx;
@@ -77,10 +86,10 @@ export const countConsecutiveSteps = (
       matched++;
       lastIndex = bestStart + bestLen;
       if (compactRaw.length && normLower.length) {
-        normalizedIndex = Math.min(
+        lastIndex = Math.min(
           normLower.length,
           Math.max(
-            normalizedIndex,
+            lastIndex,
             Math.floor(
               (lastIndex / compactRaw.length) * normLower.length,
             ),
