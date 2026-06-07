@@ -63,7 +63,7 @@ const App = () => {
             <VisualizerOrb mode={orbMode} volumeRef={volumeRef}  />
 
             {/* Show matched words in both speech and text mode */}
-            {currentStep && transcript.trim() && (
+            {currentStep && transcript.trim() && !isComplete && (
               <MatchedWordsDisplay
                 expected={currentStep.arabic}
                 display={display}
@@ -72,7 +72,7 @@ const App = () => {
           </div>
 
           {/* Pronunciation guide — speech mode only */}
-          {!showCertificate && isRecording && (
+          {!showCertificate && isRecording && !isComplete && (
             <RecitePrompt
               step={currentStep!}
               stepIndex={steps}

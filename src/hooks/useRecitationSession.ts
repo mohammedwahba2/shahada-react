@@ -160,11 +160,9 @@ export const useRecitationSession = () => {
       setIsRecording(false);
       setOrbOverride("engaged");
       scheduleTimer(2000);
-      // Show the certificate only after the mic has fully stopped
       setShowCertificate(true);
     }
   }, [isComplete, isRecording, stopListening, stopVisualizer, scheduleTimer]);
-
   // Stop recording if the connection drops mid-session
   useEffect(() => {
     if (!isOnline && isRecording) {
