@@ -1,6 +1,3 @@
-/**
- * Minimal Web Speech API typings for TypeScript when the active `lib` omits them.
- */
 
 interface SpeechRecognitionAlternative {
   readonly transcript: string;

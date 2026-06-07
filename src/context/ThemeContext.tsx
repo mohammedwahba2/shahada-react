@@ -17,7 +17,7 @@ const readStoredTheme = (): Theme => {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored === "dark" || stored === "light") return stored;
   } catch {
-    // Ignore read errors and return default
+    console.warn("Could not read theme from localStorage");
   }
   return "light";
 };
@@ -35,7 +35,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     try {
       localStorage.setItem(STORAGE_KEY, theme);
     } catch {
-      // Ignore write errors
+      console.warn("Could not save theme to localStorage");
     }
   }, [theme, isDark]);
 

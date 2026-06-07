@@ -47,7 +47,9 @@ const App = () => {
   const sessionPeakStepsRef = useRef(0);
   const recordingActiveRef = useRef(false);
   const recognitionPausedForGuideRef = useRef(false);
+
   const isOnline = useOnlineStatus();
+
   const speechSessionRefs = useMemo(
     () => ({
       sessionActiveRef: recordingActiveRef,
@@ -109,12 +111,12 @@ const App = () => {
   );
 
   const steps = useMemo(() => {
+    // Once complete, stay complete
     if (prevStepRef.current >= shahadaSteps.length) {
       return shahadaSteps.length;
     }
 
-    // In text mode we don't have an active "recording" session,
-    // so just return computed steps directly
+    // Text mode: return computed steps directly (no peak tracking needed)
     if (!hasSupport) {
       return computedMatchSteps;
     }
@@ -124,12 +126,12 @@ const App = () => {
       return computedMatchSteps;
     }
 
+    // Speech mode: track session peak to prevent steps from going backwards
+    // when STT restarts mid-recitation
     const peak = sessionPeakStepsRef.current;
     const fullMatch = computedMatchSteps;
     const partialMatch =
-      peak > 0
-        ? countConsecutiveSteps(transcript, normalized, peak)
-        : 0;
+      peak > 0 ? countConsecutiveSteps(transcript, normalized, peak) : 0;
 
     const best = Math.max(fullMatch, partialMatch);
     sessionPeakStepsRef.current = Math.max(peak, best);
@@ -151,6 +153,7 @@ const App = () => {
     return isSpeaking ? "speaking" : "listening";
   }, [error, orbOverride, isRecording, isSpeaking, textSubmitted]);
 
+  // Show "engaged" feedback on step progress during speech recording
   useEffect(() => {
     if (!isRecording) return;
     if (steps > prevStepRef.current) {
@@ -160,7 +163,7 @@ const App = () => {
     }
   }, [steps, isRecording, scheduleTimer]);
 
-  // Mark complete when text input matches all steps
+  // Show "engaged" feedback when text input completes the Shahada
   useEffect(() => {
     if (!hasSupport && isComplete && textSubmitted) {
       setOrbOverride("engaged");
@@ -168,6 +171,7 @@ const App = () => {
     }
   }, [hasSupport, isComplete, textSubmitted, scheduleTimer]);
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       clearTimer();
@@ -176,6 +180,7 @@ const App = () => {
     };
   }, [clearTimer, stopVisualizer, stopListening]);
 
+  // Auto-stop recording when Shahada is complete
   useEffect(() => {
     if (isComplete && isRecording) {
       recordingActiveRef.current = false;
@@ -186,31 +191,25 @@ const App = () => {
       setOrbOverride("engaged");
       scheduleTimer(2000);
     }
-  }, [
-    isComplete,
-    isRecording,
-    stopListening,
-    stopVisualizer,
-    scheduleTimer,
-  ]);
+  }, [isComplete, isRecording, stopListening, stopVisualizer, scheduleTimer]);
 
+  // Stop recording if internet connection drops
   useEffect(() => {
     if (!isOnline && isRecording) {
       recordingActiveRef.current = false;
       recognitionPausedForGuideRef.current = false;
-  
       stopVisualizer();
       stopListening();
       setIsRecording(false);
     }
   }, [isOnline, isRecording, stopListening, stopVisualizer]);
 
+  // Clear startup errors when connection is restored
   useEffect(() => {
-    if (isOnline) {
-      setStartupError(null);
-    }
+    if (isOnline) setStartupError(null);
   }, [isOnline]);
 
+  // Pause visualizer + recognition while pronunciation guide plays
   const handlePromptSpeechStart = useCallback(() => {
     recognitionPausedForGuideRef.current = true;
     void suspendVisualizer();
@@ -232,11 +231,13 @@ const App = () => {
       );
       return;
     }
+
     clearTimer();
     setOrbOverride(null);
     setStartupError(null);
 
     try {
+      // Prime speechSynthesis on iOS/Safari to avoid first-play silence
       if (window.speechSynthesis) {
         window.speechSynthesis.cancel();
         window.speechSynthesis.resume();
@@ -251,7 +252,7 @@ const App = () => {
       try {
         await startVisualizer();
       } catch {
-        // Visualization is optional; do not block recognition when it fails.
+        console.warn("Audio visualizer failed to start. Continuing without it.");
       }
 
       recordingActiveRef.current = true;
@@ -279,6 +280,7 @@ const App = () => {
     stopListening,
     stopVisualizer,
   ]);
+
   const handleStop = useCallback(() => {
     const hasText = speechTranscript.trim().length > 0;
     const incomplete = steps < shahadaSteps.length;
@@ -290,6 +292,7 @@ const App = () => {
     stopListening();
     setIsRecording(false);
 
+    // Show error feedback if user stopped mid-recitation
     if (hasText && incomplete) {
       setOrbOverride("error");
       scheduleTimer(2000);
@@ -327,24 +330,33 @@ const App = () => {
       : "Your First Step On Your Path To Islam.";
 
   const display =
-    cleanDisplayTranscript(transcript) ||
-    (isRecording ? "Listening…" : "");
+    cleanDisplayTranscript(transcript) || (isRecording ? "Listening…" : "");
 
-  // Only show error for speech mode — text mode handles its own UI
-  const statusMessage =
-  !isOnline ? null : startupError || error || null;
+  // Only surface speech-mode errors — text mode has its own inline UI
+  const statusMessage = !isOnline ? null : startupError || error || null;
+  const [textFlowStarted, setTextFlowStarted] = useState(false);
+  const showTextFallback = !hasSupport && textFlowStarted && !isComplete;
 
-  // In text mode, show the fallback after the user taps "Yes, I'm ready"
-  const showTextFallback = !hasSupport && isRecording === false;
+  // Wrap handleStart to also trigger text flow for unsupported browsers
+  const handleStartWithTextFallback = useCallback(async () => {
+    if (!hasSupport) {
+      setTextFlowStarted(true);
+      return;
+    }
+    await handleStart();
+  }, [hasSupport, handleStart]);
 
   return (
     <div className="flex min-h-full flex-col bg-white text-ink dark:bg-ink dark:text-white">
       <Header />
-        {!isOnline && (
-          <div className="w-full bg-red-500 text-white text-center py-2">
-            You are offline. Speech recognition requires an internet connection.
-          </div>
-        )}
+
+      {/* Offline banner */}
+      {!isOnline && (
+        <div className="w-full bg-red-500 text-white text-center py-2 text-sm">
+          You are offline. Speech recognition requires an internet connection.
+        </div>
+      )}
+
       <main
         id="main-content"
         className="flex flex-1 flex-col items-center px-4 pb-16 pt-12 sm:px-6 sm:pt-40 lg:px-8"
@@ -379,22 +391,24 @@ const App = () => {
           )}
 
           <div className="mt-10 flex flex-col gap-4 items-center">
-            {statusMessage && <p>{statusMessage}</p>}
-
-            {/* Speech mode: not started yet */}
-            {hasSupport && isOnline && !isRecording && !isComplete && (
-              <IntroFlow onStart={handleStart} />
+            {statusMessage && (
+              <p className="text-sm text-red-500">{statusMessage}</p>
             )}
 
-            {/* Speech mode: recording */}
+            {/* Not started yet (speech or text mode) */}
+            {!isRecording && !isComplete && !textFlowStarted && (
+              <IntroFlow onStart={handleStartWithTextFallback} />
+            )}
+
+            {/* Stop button during speech recording */}
             {hasSupport && isRecording && !isComplete && (
               <Button variant="stop" onClick={handleStop}>
                 Stop recording
               </Button>
             )}
 
-            {/* Text fallback mode */}
-            {showTextFallback && !isComplete && (
+            {/* Text input fallback */}
+            {showTextFallback && (
               <TextInputFallback
                 value={textInput}
                 onChange={setTextInput}
@@ -403,6 +417,7 @@ const App = () => {
               />
             )}
 
+            {/* Certificate */}
             {isComplete && <Certificate onRestart={handleRestart} />}
           </div>
         </div>

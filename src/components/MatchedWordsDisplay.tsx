@@ -1,13 +1,9 @@
 import { useMemo } from "react";
-
 import { stripForCompare } from "../utils/shahadaText";
 
-/**
- * simple word-by-word matching (sequential)
- */
 const countConsecutiveWordsMatched = (
   expected: string,
-  actual: string
+  actual: string,
 ): number => {
   const expectedWords = stripForCompare(expected).split(/\s+/);
   const actualWords = stripForCompare(actual).split(/\s+/);
@@ -30,17 +26,13 @@ interface MatchedWordsDisplayProps {
   display: string;
 }
 
-/**
- * highlights matched words in expected Arabic text.
- * matched words appear full opacity; unmatched are dimmed.
- */
 export function MatchedWordsDisplay({
   expected,
   display,
 }: MatchedWordsDisplayProps) {
   const matchedCount = useMemo(
     () => countConsecutiveWordsMatched(expected, display),
-    [expected, display]
+    [expected, display],
   );
 
   const words = useMemo(() => expected.split(/\s+/), [expected]);
@@ -53,11 +45,11 @@ export function MatchedWordsDisplay({
     >
       {words.map((word, idx) => (
         <span
-          key={idx}
+          key={`${idx}-${word}`}
           className={
             idx < matchedCount
-              ? "text-ink dark:text-white"           
-              : "text-ink/30 dark:text-white/30"    
+              ? "text-ink dark:text-white"
+              : "text-ink/30 dark:text-white/30"
           }
         >
           {word + " "}

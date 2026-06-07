@@ -145,7 +145,7 @@ const useSpeechRecognition = (
       try {
         recognitionRef.current?.abort();
       } catch {
-        // Ignore abort errors
+       console.warn("Failed to abort speech recognition during cleanup");
       }
 
       recognitionRef.current = null;
@@ -216,7 +216,7 @@ const useSpeechRecognition = (
       try {
         recognitionRef.current?.stop();
       } catch {
-        // Ignore stop errors
+        console.warn("Failed to stop speech recognition");
       }
     }
 
@@ -232,7 +232,7 @@ const useSpeechRecognition = (
     try {
       recognitionRef.current?.abort();
     } catch {
-      // Ignore abort errors
+      console.warn("Failed to abort speech recognition during reset");
     }
 
     recognitionRef.current = createRecognition();

@@ -1,6 +1,5 @@
 import { shahadaSteps } from "../data/shahada";
 
-/** Normalize transcript for matching */
 export const normalizeTranscript = (value: string): string =>
   value
     .toLowerCase()
@@ -9,34 +8,23 @@ export const normalizeTranscript = (value: string): string =>
     .replace(/\s+/g, " ")
     .trim();
 
-/** Normalize Arabic text for comparison (diacritics + character variants) */
 export const stripForCompare = (value: string): string =>
   value
     .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .replace(/[أإآٱأ]/g, "ا")
-    .replace(/ة/g, "ه")
-    .replace(/ى/g, "ي")
-    .replace(/ؤ/g, "و")
-    .replace(/ئ/g, "ي")
+    .replace(/\p{M}/gu, "")      
+    .replace(/[أإآٱ]/g, "ا")    
+    .replace(/ة/g, "ه")          
+    .replace(/ى/g, "ي")           
+    .replace(/ؤ/g, "و")         
+    .replace(/ئ/g, "ي")          
     .trim();
 
-/** Remove repeated words for cleaner UI display */
 export const cleanDisplayTranscript = (text: string): string => {
   if (!text) return "";
-
   const words = text.trim().split(/\s+/);
-  const uniqueWords = words.filter(
-    (word, index) => word !== words[index - 1],
-  );
-
-  return uniqueWords.join(" ");
+  return words.filter((word, i) => word !== words[i - 1]).join(" ");
 };
 
-/**
- * Count sequential Shahada steps matched in transcript.
- * Uses fuzzy Arabic matching (normalized arabic + keywords + compactHints).
- */
 export const countConsecutiveSteps = (
   raw: string,
   normalized: string,
@@ -59,17 +47,9 @@ export const countConsecutiveSteps = (
 
     const arabic = stripForCompare(step.arabic);
 
-    // Build all candidates: arabic text + keywords + compactHints
-    const keywordCandidates = (step.keywords ?? []).map((k) =>
-      stripForCompare(k),
-    );
-    const hintCandidates = (step.compactHints ?? []).map((h) =>
-      stripForCompare(h),
-    );
-
-    const allCandidates = [arabic, ...keywordCandidates, ...hintCandidates].filter(
-      Boolean,
-    );
+    const keywordCandidates = (step.keywords ?? []).map(stripForCompare);
+    const hintCandidates = (step.compactHints ?? []).map(stripForCompare);
+    const allCandidates = [arabic, ...keywordCandidates, ...hintCandidates].filter(Boolean);
 
     let bestStart = -1;
     let bestLen = 0;
@@ -85,14 +65,13 @@ export const countConsecutiveSteps = (
     if (bestStart !== -1) {
       matched++;
       lastIndex = bestStart + bestLen;
+
       if (compactRaw.length && normLower.length) {
         lastIndex = Math.min(
           normLower.length,
           Math.max(
             lastIndex,
-            Math.floor(
-              (lastIndex / compactRaw.length) * normLower.length,
-            ),
+            Math.floor((lastIndex / compactRaw.length) * normLower.length),
           ),
         );
       }

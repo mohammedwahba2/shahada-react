@@ -63,7 +63,6 @@ export function Certificate({ onRestart }: CertificateProps) {
               >
                 أشهد أن لا إله إلا الله
               </p>
-
               <p
                 className="text-2xl leading-relaxed mt-2"
                 style={{ fontFamily: '"Noto Naskh Arabic", serif' }}
@@ -77,13 +76,15 @@ export function Certificate({ onRestart }: CertificateProps) {
 
           <div className="flex gap-3 mt-2">
             <button
+              type="button"
               onClick={() => window.print()}
               className="px-6 py-2 rounded-full bg-ink text-white dark:bg-white dark:text-ink text-sm font-medium"
             >
-              Download PDF
+              Print / Save as PDF
             </button>
 
             <button
+              type="button"
               onClick={onRestart}
               className="px-6 py-2 rounded-full border border-zinc-300 dark:border-zinc-600 text-sm font-medium"
             >
