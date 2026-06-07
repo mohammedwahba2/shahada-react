@@ -46,7 +46,6 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-// ─── Tests ────────────────────────────────────────────────────────────────────
 
 describe("useSpeechRecognition", () => {
   it("reports hasSupport = true when SpeechRecognition is available", () => {
