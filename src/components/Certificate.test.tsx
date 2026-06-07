@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
-import { render, screen } from "@testing-library/react"
+import { render } from "@testing-library/react"
+import { screen } from "@testing-library/dom"
 import { Certificate } from "./Certificate"
 it("shows name input before generating", () => {
   render(<Certificate onRestart={vi.fn()} />)

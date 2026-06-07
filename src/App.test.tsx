@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
-import { render, screen } from "@testing-library/react"
+import { render } from "@testing-library/react"
+import { screen } from "@testing-library/dom"
 import { ThemeProvider } from "./context/ThemeContext"
 import App from "./App"
 
